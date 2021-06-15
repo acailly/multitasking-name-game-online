@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Multitasking name game revisité</title>
+    <link rel="stylesheet" href="mvp.css" />
+    <style>
+      input {
+        margin-left: 5px;
+        margin-right: 5px;
+      }
+      header,
+      main {
+        padding-top: 0px;
+        padding-bottom: 0px;
+      }
+      input:disabled {
+        color: black;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>🤹‍♀️ Multitasking name game revisité</h1>
+      <p>
+        Inspiré de
+        <a
+          href="http://coach-agile.com/wp-content/uploads/2018/07/Multitasking-Name-Game-agile.pdf"
+          target="_blank"
+          rel="noreferrer"
+        >
+          l'atelier d'Henrik Kniberg (2011)
+        </a>
+      </p>
+    </header>
+    <main>
+      <h2>Demarrer</h2>
+      <p>
+        1er tour "démarre vite, finit vite" : ecrivez la première lettre de
+        chaque prénoms, puis la deuxième, ...
+      </p>
+      <p>
+        2ème tour "limiter le travail en cours" : ecrivez le premier prénom en
+        entrier, puis le deuxième, ...
+      </p>
+      <button onclick="start()">C'est parti !</button>
+
+      <h2>Prénoms</h2>
+      <div style="display: flex; flex-direction: row; flex-wrap: wrap">
+        <div><input type="text" id="prenom1" disabled /></div>
+        <div><input type="text" id="prenom2" disabled /></div>
+        <div><input type="text" id="prenom3" disabled /></div>
+        <div><input type="text" id="prenom4" disabled /></div>
+      </div>
+
+      <h2>A vous de jouer</h2>
+      <div style="display: flex; flex-direction: row; flex-wrap: wrap">
+        <div>
+          <input style="text-transform: uppercase" type="text" id="reponse1" />
+        </div>
+        <div>
+          <input style="text-transform: uppercase" type="text" id="reponse2" />
+        </div>
+        <div>
+          <input style="text-transform: uppercase" type="text" id="reponse3" />
+        </div>
+        <div>
+          <input style="text-transform: uppercase" type="text" id="reponse4" />
+        </div>
+      </div>
+
+      <h2>Résultats</h2>
+      <div>
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap">
+          <label>Temps total :</label>
+          <input type="text" id="total" disabled /> secondes
+        </div>
+        <div style="display: flex; flex-direction: row; flex-wrap: wrap">
+          <label>Temps premier :</label>
+          <input type="text" id="first" disabled /> secondes
+        </div>
+      </div>
+    </main>
+
+    <script src="party.min.js"></script>
+    <script>
+      const prenoms = [
+        "Louis",
+        "Emma",
+        "Jade",
+        "Lucas",
+        "Adam",
+        "Jules",
+        "Hugo",
+        "Alice",
+        "Paul",
+        "Tiago",
+        "Rose",
+        "Sacha",
+        "Gabin",
+        "Anna",
+        "Julia",
+        "Manon",
+        "Malo",
+      ].map((prenom) => prenom.toUpperCase());
+
+      function start() {
+        console.log("C'est parti !");
+
+        // Elements du DOM
+
+        const modeles = [
+          document.getElementById("prenom1"),
+          document.getElementById("prenom2"),
+          document.getElementById("prenom3"),
+          document.getElementById("prenom4"),
+        ];
+
+        const reponses = [
+          document.getElementById("reponse1"),
+          document.getElementById("reponse2"),
+          document.getElementById("reponse3"),
+          document.getElementById("reponse4"),
+        ];
+
+        const tempsTotal = document.getElementById("total");
+        const tempsPremier = document.getElementById("first");
+
+        // Reset
+
+        reponses.forEach((reponse) => {
+          reponse.value = "";
+        });
+
+        modeles.forEach((modele) => {
+          const randomIndex = Math.floor(Math.random() * prenoms.length);
+          const prenomADeviner = prenoms[randomIndex];
+          modele.value = prenomADeviner;
+        });
+
+        tempsTotal.value = "";
+        tempsPremier.value = "";
+
+        const tStart = new Date().getTime();
+        let tFirst = null;
+        let tLast = null;
+        const finished = [false, false, false, false];
+
+        // Focus sur le premier champ
+        reponses[0].focus();
+
+        // Ajout des listeners
+
+        reponses.forEach((reponse, index) => {
+          const listener = () => {
+            const modele = modeles[index];
+            const same =
+              modele.value.toUpperCase() === reponse.value.toUpperCase();
+            if (same) {
+              if (!tFirst) {
+                tFirst = new Date().getTime();
+                console.log("Le premier prénom est terminé");
+              }
+              finished[index] = true;
+              reponse.removeEventListener("input", listener);
+              if (finished.every((v) => v)) {
+                console.log("Tous les prénoms sont terminé");
+                tLast = new Date().getTime();
+
+                const totalTime = Math.round((tLast - tStart) / 1000).toFixed(
+                  0
+                );
+                tempsTotal.value = totalTime;
+
+                const firstTime = Math.round((tFirst - tStart) / 1000).toFixed(
+                  0
+                );
+                tempsPremier.value = firstTime;
+                window.scrollTo({
+                  top: document.body.scrollHeight,
+                  behavior: "smooth",
+                });
+                party.confetti(reponses[1]);
+              }
+            }
+          };
+          reponse.addEventListener("input", listener);
+        });
+      }
+    </script>
+  </body>
+</html>
